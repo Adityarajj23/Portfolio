@@ -578,6 +578,7 @@ const PROJECTS = [
     span: 8,
     accent: "#ba9eff",
     icon: "🔍",
+    href: "https://github.com/Adityarajj23/Fraud_bill_detection.git"
   },
   {
     title: "Thali-Verse",
@@ -587,6 +588,7 @@ const PROJECTS = [
     span: 4,
     accent: "#53ddfc",
     icon: "🍽️",
+    href: "https://github.com/Adityarajj23/Thali-Verse.git"
   },
 
   {
@@ -597,6 +599,7 @@ const PROJECTS = [
     span: 4,
     accent: "#a27cff",
     icon: "🏆",
+    href: "https://github.com/Adityarajj23/ODDO_X_NMIT.git"
   },
   {
     title: "AI Model Selection Automation",
@@ -606,6 +609,7 @@ const PROJECTS = [
     span: 8,
     accent: "#48d4f3",
     icon: "🤖",
+    href: "https://github.com/Adityarajj23/AI-Model-Selection-Automation.git"
   },
   {
     title: "Jarvis Voice Assistant",
@@ -615,23 +619,28 @@ const PROJECTS = [
     span: 12,
     accent: "#8455ef",
     icon: "🎙️",
+    href: "https://github.com/Adityarajj23/Jarvis_Voice-Assistant.git"
   },
 ];
 
 function ProjectCard({ p }) {
   const [hov, setHov] = useState(false);
+  const [ctaHov, setCtaHov] = useState(false);
   const { isMobile, isTablet } = useViewport();
+
   return (
     <div
       onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
+      onMouseLeave={() => {
+        setHov(false);
+        setCtaHov(false);
+      }}
       style={{
         gridColumn: isMobile ? "span 12" : isTablet ? `span ${Math.min(p.span, 6)}` : `span ${p.span}`,
         background: hov ? "rgba(31,43,73,0.7)" : "rgba(25,37,64,0.5)",
         border: `1px solid ${hov ? p.accent + "44" : "rgba(255,255,255,0.06)"}`,
         borderRadius: 24,
         padding: isMobile ? 22 : 32,
-        cursor: "pointer",
         transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
         transform: hov ? "translateY(-6px) scale(1.01)" : "none",
         boxShadow: hov ? `0 0 40px ${p.accent}22` : "none",
@@ -640,15 +649,39 @@ function ProjectCard({ p }) {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <div>
-          <div style={{ fontSize: 10, fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, color: p.accent, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>{p.tag} · {p.year}</div>
+          <div style={{ fontSize: 10, fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, color: p.accent, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>{p.tag} � {p.year}</div>
           <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, color: "#fff", fontSize: isMobile ? 18 : 22, letterSpacing: "-0.02em" }}>{p.title}</h3>
         </div>
         <span style={{ fontSize: isMobile ? 26 : 32 }}>{p.icon}</span>
       </div>
       <p style={{ fontFamily: "'Inter',sans-serif", color: "#a3aac4", lineHeight: 1.7, fontSize: 14 }}>{p.desc}</p>
-      <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 6, color: p.accent, fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: 13, opacity: hov ? 1 : 0.6, transition: "opacity 0.2s" }}>
-        View Project <span>→</span>
-      </div>
+      <a
+        href={p.href || SOCIAL_LINKS.github}
+        target="_blank"
+        rel="noreferrer"
+        onMouseEnter={() => setCtaHov(true)}
+        onMouseLeave={() => setCtaHov(false)}
+        style={{
+          marginTop: 20,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          color: ctaHov ? "#fff" : p.accent,
+          background: ctaHov ? "rgba(6,14,32,0.92)" : "rgba(6,14,32,0.4)",
+          border: `1px solid ${ctaHov ? p.accent + "66" : "rgba(255,255,255,0.08)"}`,
+          boxShadow: ctaHov ? `0 0 24px ${p.accent}22` : "none",
+          fontFamily: "'Plus Jakarta Sans',sans-serif",
+          fontWeight: 700,
+          fontSize: 13,
+          textDecoration: "none",
+          borderRadius: 9999,
+          padding: "10px 14px",
+          transform: ctaHov ? "translateX(4px)" : "translateX(0)",
+          transition: "all 0.2s ease",
+        }}
+      >
+        View Project <span aria-hidden="true">&rarr;</span>
+      </a>
     </div>
   );
 }
@@ -849,6 +882,12 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
+
+
 
 
 
