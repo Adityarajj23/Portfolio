@@ -18,41 +18,66 @@ const SOCIAL_LINKS = {
   instagram: "https://www.instagram.com/adityaa_raj23/",
 };
 
+function useViewport() {
+  const [width, setWidth] = useState(() => window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return {
+    width,
+    isMobile: width < 768,
+    isTablet: width >= 768 && width < 1100,
+  };
+}
+
 function Nav({ active, setActive }) {
   const [scrolled, setScrolled] = useState(false);
+  const { isMobile } = useViewport();
+
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", h);
-    return () => window.removeEventListener("scroll", h);
-  }, []);
+  setScrolled(false);
+  const scrollEl = document.getElementById("app-scroll");
+  if (!scrollEl) return;
+  scrollEl.scrollTo(0, 0);
+  if (active !== "Home") return;
+  const h = () => setScrolled(scrollEl.scrollTop > 20);
+  scrollEl.addEventListener("scroll", h);
+  return () => scrollEl.removeEventListener("scroll", h);
+}, [active]);
 
   return (
     <nav
       style={{
         position: "fixed",
-        top: 16,
+        top: 12,
         left: "50%",
         transform: "translateX(-50%)",
-        width: "90%",
-        maxWidth: 900,
         zIndex: 100,
+        width: "min(92%, 900px)",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: "12px 32px",
+        gap: isMobile ? 12 : 24,
+        padding: isMobile ? "12px 16px" : "14px 32px",
         borderRadius: 9999,
         border: "1px solid rgba(255,255,255,0.1)",
-        background: scrolled ? "rgba(6,14,32,0.85)" : "rgba(15,25,48,0.6)",
+        background: scrolled
+          ? "rgba(6,14,32,0.92)"
+          : "rgba(15,25,48,0.72)",
         backdropFilter: "blur(20px)",
-        boxShadow: "0 0 20px rgba(139,92,246,0.3)",
-        transition: "background 0.3s",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.18)",
+        transition: "background 0.3s, top 0.3s",
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}
     >
-      <span style={{ fontWeight: 900, color: "#fff", fontSize: 18, letterSpacing: "-0.05em", textTransform: "uppercase" }}>
+      <span style={{ fontWeight: 900, color: "#fff", fontSize: isMobile ? 14 : 18, letterSpacing: "-0.05em", textTransform: "uppercase" }}>
         ADITYA_RAJ
       </span>
-      <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: isMobile ? 12 : 32, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
         {NAV_LINKS.map((l) => (
           <button
             key={l}
@@ -63,7 +88,7 @@ function Nav({ active, setActive }) {
               cursor: "pointer",
               fontFamily: "'Plus Jakarta Sans', sans-serif",
               fontWeight: 700,
-              fontSize: 14,
+              fontSize: isMobile ? 12 : 14,
               letterSpacing: "0.05em",
               color: active === l ? "#53ddfc" : "#94a3b8",
               borderBottom: active === l ? "2px solid #53ddfc" : "2px solid transparent",
@@ -169,7 +194,7 @@ function PuzzleCube() {
       cancelAnimationFrame(animId);
       if (renderer) renderer.dispose();
       if (mountRef.current && renderer) {
-        try { mountRef.current.removeChild(renderer.domElement); } catch(_) {}
+        try { mountRef.current.removeChild(renderer.domElement); } catch (_) { }
       }
     };
   }, []);
@@ -184,6 +209,7 @@ function PhoneFrame({ photoSrc }) {
   const [loaded, setLoaded] = useState(false);
   const phoneRef = useRef(null);
   const pointerRef = useRef({ x: 0, y: 0 });
+  const { isMobile } = useViewport();
 
   useEffect(() => {
     let frameId;
@@ -196,9 +222,9 @@ function PhoneFrame({ photoSrc }) {
       const phone = phoneRef.current;
       if (!phone) return;
 
-      const floatY = Math.sin(time) * -8;
-      const rotateY = pointerRef.current.x * 10 + Math.sin(time * 0.7) * 4;
-      const rotateX = pointerRef.current.y * -8 + Math.cos(time * 0.9) * 3;
+      const floatY = Math.sin(time) * (isMobile ? -5 : -10);
+      const rotateY = pointerRef.current.x * (isMobile ? 12 : 18) + Math.sin(time * 0.7) * (isMobile ? 5 : 7);
+      const rotateX = pointerRef.current.y * (isMobile ? -10 : -14) + Math.cos(time * 0.9) * (isMobile ? 3 : 5);
 
       phone.style.transform = `perspective(1200px) translateY(${floatY}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
     };
@@ -219,16 +245,31 @@ function PhoneFrame({ photoSrc }) {
     pointerRef.current = { x: 0, y: 0 };
   };
 
+  const handleTouchMove = (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = (touch.clientX - rect.left) / rect.width - 0.5;
+    const y = (touch.clientY - rect.top) / rect.height - 0.5;
+    pointerRef.current = { x, y };
+  };
+
+  const handleTouchEnd = () => {
+    pointerRef.current = { x: 0, y: 0 };
+  };
+
   return (
     <div
       ref={phoneRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       style={{
         width: "100%",
-        maxWidth: 320,
+        maxWidth: isMobile ? 290 : 340,
         margin: "0 auto",
-        borderRadius: 36,
+        borderRadius: 40,
         padding: 14,
         background: "linear-gradient(160deg, rgba(15,25,48,0.98), rgba(4,10,24,0.95))",
         border: "1px solid rgba(255,255,255,0.12)",
@@ -242,7 +283,7 @@ function PhoneFrame({ photoSrc }) {
           position: "relative",
           borderRadius: 28,
           overflow: "hidden",
-          height: 420,
+          height: isMobile ? 500 : 560,
           background: "linear-gradient(180deg, rgba(9,19,40,1), rgba(6,14,32,1))",
           border: "1px solid rgba(83,221,252,0.12)",
         }}
@@ -277,10 +318,10 @@ function PhoneFrame({ photoSrc }) {
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            objectPosition: "center 22%",
+            objectPosition: isMobile ? "center 18%" : "center 20%",
             display: "block",
             opacity: loaded ? 1 : 0.18,
-            transform: "scale(1.04)",
+            transform: isMobile ? "scale(1.08)" : "scale(1.05)",
           }}
         />
         {!loaded && (
@@ -294,7 +335,7 @@ function PhoneFrame({ photoSrc }) {
               alignItems: "center",
               justifyContent: "center",
               gap: 12,
-              padding: 32,
+              padding: isMobile ? 22 : 32,
               textAlign: "center",
             }}
           >
@@ -309,14 +350,14 @@ function PhoneFrame({ photoSrc }) {
         <div
           style={{
             position: "absolute",
-            left: 16,
-            right: 16,
-            bottom: 18,
+            left: 20,
+            right: 20,
+            bottom: 22,
             zIndex: 3,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            padding: "12px 16px",
+            padding: isMobile ? "10px 14px" : "12px 16px",
             borderRadius: 18,
             background: "rgba(6,14,32,0.72)",
             border: "1px solid rgba(255,255,255,0.08)",
@@ -333,6 +374,7 @@ function PhoneFrame({ photoSrc }) {
           </div>
           <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 12px rgba(74,222,128,0.8)" }} />
         </div>
+        <div style={{ position: "absolute", left: "50%", bottom: 10, transform: "translateX(-50%)", width: 96, height: 8, borderRadius: 999, background: "rgba(255,255,255,0.16)", zIndex: 3, boxShadow: "0 0 18px rgba(83,221,252,0.2)" }} />
       </div>
     </div>
   );
@@ -389,17 +431,18 @@ function ParticleField() {
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 function HomePage({ setActive }) {
   const [visible, setVisible] = useState(false);
+  const { isMobile } = useViewport();
   useEffect(() => { setTimeout(() => setVisible(true), 50); }, []);
 
   return (
-    <section style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "120px 24px 80px", position: "relative", overflow: "hidden" }}>
+    <section style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: isMobile ? "112px 16px 64px" : "120px 24px 80px", position: "relative", overflow: "hidden" }}>
       <ParticleField />
       <div style={{ position: "absolute", top: "25%", left: "-80px", width: 384, height: 384, background: "rgba(132,85,239,0.08)", borderRadius: "50%", filter: "blur(120px)" }} />
       <div style={{ position: "absolute", bottom: "25%", right: "-80px", width: 384, height: 384, background: "rgba(64,206,237,0.08)", borderRadius: "50%", filter: "blur(120px)" }} />
 
-      <div style={{ position: "relative", zIndex: 2, textAlign: "center", maxWidth: 900 }}>
+      <div style={{ position: "relative", zIndex: 2, textAlign: "center", maxWidth: 900, width: "100%" }}>
         <div style={{ marginBottom: 48, display: "flex", justifyContent: "center" }}>
-          <PuzzleCube />
+          <div style={{ width: isMobile ? 240 : 340, height: isMobile ? 240 : 340 }}><PuzzleCube /></div>
         </div>
 
         <div style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(30px)", transition: "all 0.8s ease 0.2s" }}>
@@ -409,24 +452,24 @@ function HomePage({ setActive }) {
               RAJ
             </span>
           </h1>
-          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 18, color: "#a3aac4", maxWidth: 600, margin: "0 auto 40px", lineHeight: 1.7 }}>
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: isMobile ? 16 : 18, color: "#a3aac4", maxWidth: 600, margin: "0 auto 32px", lineHeight: 1.7, padding: isMobile ? "0 8px" : 0 }}>
             Full-Stack Engineer & AI/ML Developer. Building scalable systems where intelligent design meets technical precision.
           </p>
           <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={() => setActive("Projects")} style={{ padding: "14px 36px", background: "linear-gradient(90deg,#ba9eff,#8455ef)", border: "none", borderRadius: 9999, color: "#000", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: 14, letterSpacing: "0.1em", cursor: "pointer", boxShadow: "0 0 30px rgba(186,158,255,0.3)", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}>
+            <button onClick={() => setActive("Projects")} style={{ padding: isMobile ? "14px 24px" : "14px 36px", background: "linear-gradient(90deg,#ba9eff,#8455ef)", border: "none", borderRadius: 9999, color: "#000", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: 14, letterSpacing: "0.1em", cursor: "pointer", boxShadow: "0 0 30px rgba(186,158,255,0.3)", transition: "transform 0.2s" }} onMouseOver={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}>
               EXPLORE WORK
             </button>
-            <button onClick={() => setActive("Contact")} style={{ padding: "14px 36px", background: "rgba(25,37,64,0.6)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9999, color: "#fff", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: "0.05em", cursor: "pointer", backdropFilter: "blur(12px)", transition: "all 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "rgba(31,43,73,0.8)"} onMouseOut={e => e.currentTarget.style.background = "rgba(25,37,64,0.6)"}>
+            <button onClick={() => setActive("Contact")} style={{ padding: isMobile ? "14px 24px" : "14px 36px", background: "rgba(25,37,64,0.6)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9999, color: "#fff", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: "0.05em", cursor: "pointer", backdropFilter: "blur(12px)", transition: "all 0.2s" }} onMouseOver={e => e.currentTarget.style.background = "rgba(31,43,73,0.8)"} onMouseOut={e => e.currentTarget.style.background = "rgba(25,37,64,0.6)"}>
               GET IN TOUCH
             </button>
           </div>
         </div>
 
         {/* Stat chips */}
-        <div style={{ marginTop: 64, display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap", opacity: visible ? 1 : 0, transition: "opacity 1s ease 0.6s" }}>
+        <div style={{ marginTop: 64, display: "flex", gap: isMobile ? 12 : 24, justifyContent: "center", flexWrap: "wrap", opacity: visible ? 1 : 0, transition: "opacity 1s ease 0.6s" }}>
           {[["9.32", "CGPA"], ["Top 32", "Hackathon"], ["98%", "Fraud Recall"], ["2+", "Years Coding"]].map(([val, label]) => (
-            <div key={label} style={{ background: "rgba(25,37,64,0.6)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "16px 24px", backdropFilter: "blur(12px)", textAlign: "center" }}>
-              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 900, fontSize: 28, background: "linear-gradient(90deg,#ba9eff,#53ddfc)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{val}</div>
+            <div key={label} style={{ background: "rgba(25,37,64,0.6)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: isMobile ? "14px 16px" : "16px 24px", backdropFilter: "blur(12px)", textAlign: "center" }}>
+              <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 900, fontSize: isMobile ? 22 : 28, background: "linear-gradient(90deg,#ba9eff,#53ddfc)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{val}</div>
               <div style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, color: "#a3aac4", letterSpacing: "0.2em", marginTop: 4 }}>{label}</div>
             </div>
           ))}
@@ -449,8 +492,9 @@ const SKILLS = [
 ];
 
 function AboutPage() {
+  const { isMobile, isTablet } = useViewport();
   return (
-    <section style={{ minHeight: "100vh", padding: "120px 24px 80px", position: "relative" }}>
+    <section style={{ minHeight: "100vh", padding: isMobile ? "112px 16px 64px" : "120px 24px 80px", position: "relative" }}>
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(9,19,40,0.5)" }} />
       <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 2 }}>
         {/* Header */}
@@ -461,10 +505,10 @@ function AboutPage() {
           </h2>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 32 : 64, alignItems: "start" }}>
           {/* 3D Phone */}
           <div>
-            <div style={{ background: "rgba(25,37,64,0.4)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 32, overflow: "hidden", backdropFilter: "blur(12px)", boxShadow: "0 0 40px rgba(83,221,252,0.1)" }}>
+            <div style={{ background: "rgba(25,37,64,0.4)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 32, overflow: "visible", backdropFilter: "blur(12px)", boxShadow: "0 0 40px rgba(83,221,252,0.1)", padding: isMobile ? "12px 0 24px" : "18px 0 30px" }}>
               <PhoneFrame photoSrc={PROFILE_PHOTO} />
             </div>
             <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 12, color: "#6d758c", textAlign: "center", marginTop: 12, letterSpacing: "0.1em" }}>Profile preview</p>
@@ -473,13 +517,13 @@ function AboutPage() {
           {/* Bio + Skills */}
           <div>
             <div style={{ marginBottom: 40 }}>
-              <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 17, color: "#a3aac4", lineHeight: 1.8, marginBottom: 20 }}>
+              <p style={{ fontFamily: "'Inter',sans-serif", fontSize: isMobile ? 15 : 17, color: "#a3aac4", lineHeight: 1.8, marginBottom: 20 }}>
                 I'm <strong style={{ color: "#fff" }}>Aditya Raj</strong>, a Computer Science undergraduate at Dayananda Sagar College of Engineering (CGPA 9.32), specializing in full-stack web development and AI/ML systems.
               </p>
-              <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 17, color: "#a3aac4", lineHeight: 1.8, marginBottom: 20 }}>
+              <p style={{ fontFamily: "'Inter',sans-serif", fontSize: isMobile ? 15 : 17, color: "#a3aac4", lineHeight: 1.8, marginBottom: 20 }}>
                 I build scalable applications using React, Flask, and MongoDB, and develop hybrid AI pipelines combining computer vision, OCR, and deep learning. My work has achieved 98% fraud recall in production systems.
               </p>
-              <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 17, color: "#a3aac4", lineHeight: 1.8 }}>
+              <p style={{ fontFamily: "'Inter',sans-serif", fontSize: isMobile ? 15 : 17, color: "#a3aac4", lineHeight: 1.8 }}>
                 A national-level hackathon finalist (Top 32/100 among 800–1000 teams), I thrive at the intersection of backend engineering and intelligent systems design.
               </p>
             </div>
@@ -491,7 +535,7 @@ function AboutPage() {
                 { school: "Dayananda Sagar College of Engineering", degree: "B.E. Computer Science & Engineering", year: "2023–2027", score: "CGPA 9.32" },
                 { school: "Delhi Public School, B.S. City", degree: "All India Senior School Certificate (XII)", year: "2020–2022", score: "92.2%" },
               ].map((e) => (
-                <div key={e.school} style={{ background: "rgba(25,37,64,0.5)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "16px 20px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div key={e.school} style={{ background: "rgba(25,37,64,0.5)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "16px 20px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 8 : 0 }}>
                   <div>
                     <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, color: "#fff", fontSize: 14 }}>{e.school}</div>
                     <div style={{ fontFamily: "'Inter',sans-serif", color: "#a3aac4", fontSize: 12, marginTop: 4 }}>{e.degree} · {e.year}</div>
@@ -506,7 +550,7 @@ function AboutPage() {
         {/* Skills Grid */}
         <div style={{ marginTop: 64 }}>
           <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, color: "#fff", marginBottom: 32, fontSize: 16, letterSpacing: "0.2em", textTransform: "uppercase" }}>Technical Arsenal</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2, minmax(0, 1fr))" : "repeat(auto-fill,minmax(220px,1fr))", gap: 16 }}>
             {SKILLS.map((s) => (
               <div key={s.cat} style={{ background: "rgba(25,37,64,0.5)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "20px 24px", transition: "all 0.3s" }} onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(186,158,255,0.3)"; e.currentTarget.style.transform = "translateY(-4px)"; }} onMouseOut={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.transform = "translateY(0)"; }}>
                 <div style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#53ddfc", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 12 }}>{s.cat}</div>
@@ -526,12 +570,12 @@ function AboutPage() {
 
 // ─── PROJECTS PAGE ────────────────────────────────────────────────────────────
 const PROJECTS = [
-   {
+  {
     title: "Hybrid Fraud Bill Detection",
     tag: "Computer Vision · EfficientNet + OCR",
     year: "2024",
     desc: "Fraud detection pipeline combining deep learning image classification with OCR-based numeric validation. Achieved 98% fraud recall on 694-receipt test dataset. Deployed via FastAPI + Swagger UI.",
-    span: 4,
+    span: 8,
     accent: "#ba9eff",
     icon: "🔍",
   },
@@ -540,7 +584,7 @@ const PROJECTS = [
     tag: "Full-Stack · React + Flask + MongoDB",
     year: "2024",
     desc: "Full-stack restaurant management system with menu management, order tracking, analytics dashboards, MongoDB aggregation pipelines, and seasonal sales trend visualizations.",
-    span: 8,
+    span: 4,
     accent: "#53ddfc",
     icon: "🍽️",
   },
@@ -576,16 +620,17 @@ const PROJECTS = [
 
 function ProjectCard({ p }) {
   const [hov, setHov] = useState(false);
+  const { isMobile, isTablet } = useViewport();
   return (
     <div
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        gridColumn: `span ${p.span}`,
+        gridColumn: isMobile ? "span 12" : isTablet ? `span ${Math.min(p.span, 6)}` : `span ${p.span}`,
         background: hov ? "rgba(31,43,73,0.7)" : "rgba(25,37,64,0.5)",
         border: `1px solid ${hov ? p.accent + "44" : "rgba(255,255,255,0.06)"}`,
         borderRadius: 24,
-        padding: 32,
+        padding: isMobile ? 22 : 32,
         cursor: "pointer",
         transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
         transform: hov ? "translateY(-6px) scale(1.01)" : "none",
@@ -596,9 +641,9 @@ function ProjectCard({ p }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <div>
           <div style={{ fontSize: 10, fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, color: p.accent, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>{p.tag} · {p.year}</div>
-          <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, color: "#fff", fontSize: 22, letterSpacing: "-0.02em" }}>{p.title}</h3>
+          <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, color: "#fff", fontSize: isMobile ? 18 : 22, letterSpacing: "-0.02em" }}>{p.title}</h3>
         </div>
-        <span style={{ fontSize: 32 }}>{p.icon}</span>
+        <span style={{ fontSize: isMobile ? 26 : 32 }}>{p.icon}</span>
       </div>
       <p style={{ fontFamily: "'Inter',sans-serif", color: "#a3aac4", lineHeight: 1.7, fontSize: 14 }}>{p.desc}</p>
       <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 6, color: p.accent, fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, fontSize: 13, opacity: hov ? 1 : 0.6, transition: "opacity 0.2s" }}>
@@ -609,8 +654,9 @@ function ProjectCard({ p }) {
 }
 
 function ProjectsPage() {
+  const { isMobile, isTablet } = useViewport();
   return (
-    <section style={{ minHeight: "100vh", padding: "120px 24px 80px" }}>
+    <section style={{ minHeight: "100vh", padding: isMobile ? "112px 16px 64px" : "120px 24px 80px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ marginBottom: 64 }}>
           <div style={{ display: "inline-block", padding: "4px 16px", borderRadius: 9999, background: "rgba(20,31,56,0.8)", border: "1px solid rgba(64,72,93,0.3)", marginBottom: 20 }}>
@@ -622,17 +668,17 @@ function ProjectsPage() {
               Projects
             </span>
           </h1>
-          <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 17, color: "#a3aac4", maxWidth: 600, lineHeight: 1.7 }}>
+          <p style={{ fontFamily: "'Inter',sans-serif", fontSize: isMobile ? 15 : 17, color: "#a3aac4", maxWidth: 600, lineHeight: 1.7 }}>
             A curated exploration of full-stack applications and AI systems — where engineering precision meets intelligent design.
           </p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(6, 1fr)" : "repeat(12, 1fr)", gap: isMobile ? 16 : 24 }}>
           {PROJECTS.map((p) => <ProjectCard key={p.title} p={p} />)}
         </div>
 
         {/* Achievements */}
-        <div style={{ marginTop: 64, background: "rgba(25,37,64,0.4)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 32, padding: 48, backdropFilter: "blur(12px)" }}>
-          <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, color: "#fff", fontSize: 22, marginBottom: 24 }}>🏆 Achievements</h3>
+        <div style={{ marginTop: 64, background: "rgba(25,37,64,0.4)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 32, padding: isMobile ? 24 : 48, backdropFilter: "blur(12px)" }}>
+          <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 800, color: "#fff", fontSize: isMobile ? 18 : 22, marginBottom: 24 }}>🏆 Achievements</h3>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
             {["National-level hackathon participant — Top 32 among 800–1000 teams", "National-level hackathon participant — Top 100 among 800–1000 teams", "Contributed to system architecture and rapid prototyping of AI-based solutions"].map((a) => (
               <div key={a} style={{ flex: "1 1 280px", background: "rgba(186,158,255,0.08)", border: "1px solid rgba(186,158,255,0.15)", borderRadius: 16, padding: "16px 20px", fontFamily: "'Inter',sans-serif", fontSize: 14, color: "#dee5ff", lineHeight: 1.6 }}>
@@ -650,9 +696,10 @@ function ProjectsPage() {
 function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "New Project Inquiry", message: "" });
   const [sent, setSent] = useState(false);
+  const { isMobile } = useViewport();
 
   return (
-    <section style={{ minHeight: "100vh", padding: "120px 24px 80px" }}>
+    <section style={{ minHeight: "100vh", padding: isMobile ? "112px 16px 64px" : "120px 24px 80px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ marginBottom: 64, position: "relative" }}>
           <div style={{ position: "absolute", top: -96, left: -96, width: 384, height: 384, background: "rgba(186,158,255,0.06)", borderRadius: "50%", filter: "blur(120px)" }} />
@@ -662,14 +709,14 @@ function ContactPage() {
               CONNECT
             </span>
           </h1>
-          <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 18, color: "#a3aac4", maxWidth: 600, lineHeight: 1.7, marginTop: 20 }}>
+          <p style={{ fontFamily: "'Inter',sans-serif", fontSize: isMobile ? 15 : 18, color: "#a3aac4", maxWidth: 600, lineHeight: 1.7, marginTop: 20 }}>
             Whether you have a project in mind or want to explore collaboration, I'm just a message away.
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "7fr 5fr", gap: 48, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "7fr 5fr", gap: isMobile ? 24 : 48, alignItems: "start" }}>
           {/* Form */}
-          <div style={{ background: "rgba(25,37,64,0.6)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 32, padding: 48, backdropFilter: "blur(12px)", boxShadow: "0 0 30px rgba(186,158,255,0.1)", position: "relative", overflow: "hidden" }}>
+          <div style={{ background: "rgba(25,37,64,0.6)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 32, padding: isMobile ? 24 : 48, backdropFilter: "blur(12px)", boxShadow: "0 0 30px rgba(186,158,255,0.1)", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", bottom: -80, right: -80, width: 256, height: 256, background: "rgba(83,221,252,0.08)", borderRadius: "50%", filter: "blur(80px)" }} />
             {sent ? (
               <div style={{ textAlign: "center", padding: "60px 0" }}>
@@ -680,12 +727,12 @@ function ContactPage() {
               </div>
             ) : (
               <div style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 24, marginBottom: 24 }}>
                   {[["Full Name", "name", "text", "Aditya Raj"], ["Email Address", "email", "email", "hello@example.com"]].map(([label, field, type, ph]) => (
                     <div key={field}>
                       <label style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#53ddfc", letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>{label}</label>
                       <input type={type} placeholder={ph} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })}
-                        style={{ width: "100%", boxSizing: "border-box", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none" }}
+                        style={{ width: "100%", boxSizing: "border-box", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: isMobile ? "12px 16px" : "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none" }}
                         onFocus={e => e.target.style.borderColor = "#53ddfc"} onBlur={e => e.target.style.borderColor = "rgba(64,72,93,0.4)"} />
                     </div>
                   ))}
@@ -693,14 +740,14 @@ function ContactPage() {
                 <div style={{ marginBottom: 24 }}>
                   <label style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#53ddfc", letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Subject</label>
                   <select value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}
-                    style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none" }}>
+                    style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: isMobile ? "12px 16px" : "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none" }}>
                     {["New Project Inquiry", "Collaboration Opportunity", "AI/ML Consultation", "Just saying hello"].map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
                 <div style={{ marginBottom: 32 }}>
                   <label style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#53ddfc", letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Message</label>
                   <textarea rows={5} placeholder="Tell me about your project or idea..." value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
-                    style={{ width: "100%", boxSizing: "border-box", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none", resize: "vertical" }}
+                    style={{ width: "100%", boxSizing: "border-box", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: isMobile ? "12px 16px" : "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none", resize: "vertical" }}
                     onFocus={e => e.target.style.borderColor = "#53ddfc"} onBlur={e => e.target.style.borderColor = "rgba(64,72,93,0.4)"} />
                 </div>
                 <button onClick={() => setSent(true)}
@@ -717,7 +764,7 @@ function ContactPage() {
             <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, color: "#fff", fontSize: 20, display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ width: 32, height: 2, background: "#53ddfc", display: "inline-block" }} /> Direct Access
             </h3>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
               {[
                 { icon: "@", label: "Email", val: "adityaarajj2323@gmail.com", href: SOCIAL_LINKS.email, accent: "#48d4f3" },
                 { icon: "in", label: "LinkedIn", val: "Adityaraj", href: SOCIAL_LINKS.linkedin, accent: "#ba9eff" },
@@ -751,11 +798,12 @@ function ContactPage() {
 
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 function Footer({ setActive }) {
+  const { isMobile } = useViewport();
   return (
-    <footer style={{ background: "#020810", borderTop: "1px solid rgba(255,255,255,0.05)", padding: "48px 24px" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 24 }}>
+    <footer style={{ background: "#020810", borderTop: "1px solid rgba(255,255,255,0.05)", padding: isMobile ? "32px 16px" : "48px 24px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", gap: 24 }}>
         <span style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 900, color: "#fff", fontSize: 16, letterSpacing: "-0.03em", textTransform: "uppercase" }}>ADITYA_RAJ</span>
-        <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: isMobile ? 16 : 32, flexWrap: "wrap" }}>
           {[
             { label: "LinkedIn", href: SOCIAL_LINKS.linkedin },
             { label: "GitHub", href: SOCIAL_LINKS.github },
@@ -772,12 +820,16 @@ function Footer({ setActive }) {
   );
 }
 
-// ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [active, setActive] = useState("Home");
 
+  const handleSetActive = (page) => {
+    setActive(page);
+    const scrollEl = document.getElementById("app-scroll");
+    if (scrollEl) scrollEl.scrollTo({ top: 0, behavior: "instant" });
+  };
+
   useEffect(() => {
-    // Load fonts
     const link = document.createElement("link");
     link.href = "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap";
     link.rel = "stylesheet";
@@ -785,18 +837,33 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#060e20", color: "#dee5ff" }}>
-      <Nav active={active} setActive={setActive} />
+    <div id="app-scroll" style={{ height: "100vh", overflowY: "auto", background: "#060e20", color: "#dee5ff" }}>
+      <Nav active={active} setActive={handleSetActive} />
       <main>
-        {active === "Home" && <HomePage setActive={setActive} />}
+        {active === "Home" && <HomePage setActive={handleSetActive} />}
         {active === "About" && <AboutPage />}
         {active === "Projects" && <ProjectsPage />}
         {active === "Contact" && <ContactPage />}
       </main>
-      <Footer setActive={setActive} />
+      <Footer setActive={handleSetActive} />
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
