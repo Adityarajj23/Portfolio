@@ -482,13 +482,13 @@ function HomePage({ setActive }) {
 // ─── ABOUT PAGE ───────────────────────────────────────────────────────────────
 const SKILLS = [
   { cat: "Languages", items: ["Python", "C++", "JavaScript", "SQL"] },
-  { cat: "Frontend", items: ["React", "HTML/CSS", "Tailwind"] },
-  { cat: "Backend", items: ["Flask", "Django", "REST APIs"] },
-  { cat: "AI/ML", items: ["PyTorch", "Scikit-learn", "EfficientNet", "OpenCV"] },
+  { cat: "Frontend", items: ["React", "HTML/CSS", "Tailwind","Stremlit"] },
+  { cat: "Backend", items: ["Flask", "Django", "REST APIs", "Firebase", "JWT Authentication"] },
+  { cat: "AI/ML", items: ["PyTorch", "Scikit-learn", "Tensorflow", "EfficientNet", "OpenCV","LLMs","LangChain"] },
   { cat: "Databases", items: ["MongoDB", "MySQL", "PostgreSQL"] },
-  { cat: "Analytics", items: ["Pandas", "Tableau", "Power BI", "Matplotlib"] },
-  { cat: "Tools", items: ["Git/GitHub", "Jupyter", "GoogleADK", "LiteLLM"] },
-  { cat: "Other", items: ["Web Scraping", "API Integration", "OCR Pipelines"] },
+  { cat: "Cloud & DevOps", items: ["AWS", "Google Cloud","MongoDB Atlas", "Docker", "Jenkins"] },
+  { cat: "Cybersecurity", items: ["Network Security", "Cryptography", "Access Control", "Secure APIs"] },
+  { cat: "Analytics & Tools", items: ["Pandas", "Tableau", "Power BI", "Git/GitHub", "Jupyter", "GoogleADK", "LiteLLM","Tessaract OCR"] },
 ];
 
 function AboutPage() {
@@ -518,7 +518,7 @@ function AboutPage() {
           <div>
             <div style={{ marginBottom: 40 }}>
               <p style={{ fontFamily: "'Inter',sans-serif", fontSize: isMobile ? 15 : 17, color: "#a3aac4", lineHeight: 1.8, marginBottom: 20 }}>
-                I'm <strong style={{ color: "#fff" }}>Aditya Raj</strong>, a Computer Science undergraduate at Dayananda Sagar College of Engineering (CGPA 9.32), specializing in full-stack web development and AI/ML systems.
+                I'm <strong style={{ color: "#fff" }}>Aditya Raj</strong>, a 3rd year Computer Science undergraduate at Dayananda Sagar College of Engineering, Bengaluru (CGPA 9.22), specializing in full-stack web development and AI/ML systems.
               </p>
               <p style={{ fontFamily: "'Inter',sans-serif", fontSize: isMobile ? 15 : 17, color: "#a3aac4", lineHeight: 1.8, marginBottom: 20 }}>
                 I build scalable applications using React, Flask, and MongoDB, and develop hybrid AI pipelines combining computer vision, OCR, and deep learning. My work has achieved 98% fraud recall in production systems.
@@ -533,7 +533,8 @@ function AboutPage() {
               <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, color: "#fff", marginBottom: 16, fontSize: 16, letterSpacing: "0.05em", textTransform: "uppercase" }}>Education</h3>
               {[
                 { school: "Dayananda Sagar College of Engineering", degree: "B.E. Computer Science & Engineering", year: "2023–2027", score: "CGPA 9.32" },
-                { school: "Delhi Public School, B.S. City", degree: "All India Senior School Certificate (XII)", year: "2020–2022", score: "92.2%" },
+                { school: "Delhi Public School, B.S. City", degree: "All India Senior School Certificate Examination (XII)", year: "2020–2022", score: "92.2%" },
+                { school: "Delhi Public School, B.S. City", degree: "All India Secondary School Examination (X)", year: "2004-2019", score: "97.4%" },
               ].map((e) => (
                 <div key={e.school} style={{ background: "rgba(25,37,64,0.5)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "16px 20px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 8 : 0 }}>
                   <div>
@@ -578,28 +579,27 @@ const PROJECTS = [
     span: 8,
     accent: "#ba9eff",
     icon: "🔍",
-    href: "https://github.com/Adityarajj23/Fraud_bill_detection.git"
+    href: "https://github.com/Adityarajj23/Fraud_bill_detection"
   },
   {
-    title: "Thali-Verse",
-    tag: "Full-Stack · React + Flask + MongoDB",
+    title: "SentinelAI Fraud Monitor",
+    tag: "Full-Stack · React + Flask + ML",
     year: "2024",
-    desc: "Full-stack restaurant management system with menu management, order tracking, analytics dashboards, MongoDB aggregation pipelines, and seasonal sales trend visualizations.",
+    desc: "End-to-end API monitoring and fraud detection system featuring a Flask backend, hybrid anomaly detection (Isolation Forest ML + rule-based), a glassmorphic React dashboard, and Gemini API-powered anomaly explanations.",
     span: 4,
     accent: "#53ddfc",
-    icon: "🍽️",
-    href: "https://github.com/Adityarajj23/Thali-Verse.git"
+    icon: "🛡️",
+    href: "https://github.com/Adityarajj23/sentinelAI"
   },
-
   {
-    title: "ODDO × NMIT Hackathon Backend",
-    tag: "Backend · Python + Django",
+    title: "NullByters",
+    tag: "Security · Python + Web",
     year: "2024",
-    desc: "Complete backend infrastructure for a national hackathon project. Modular services for user management, order processing, and item handling with REST-style API endpoints.",
+    desc: "Added Python GUI frontend components, built the project website, and implemented secure, encrypted certificate generation. Integrated GitHub APIs for dynamic, real-time certificate verification directly on the website.",
     span: 4,
     accent: "#a27cff",
-    icon: "🏆",
-    href: "https://github.com/Adityarajj23/ODDO_X_NMIT.git"
+    icon: "🔐",
+    href: "https://github.com/Adityarajj23/NullByters"
   },
   {
     title: "AI Model Selection Automation",
@@ -619,7 +619,7 @@ const PROJECTS = [
     span: 12,
     accent: "#8455ef",
     icon: "🎙️",
-    href: "https://github.com/Adityarajj23/Jarvis_Voice-Assistant.git"
+    href: "https://github.com/Adityarajj23/Jarvis_Voice-Assistant"
   },
 ];
 
