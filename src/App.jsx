@@ -728,8 +728,45 @@ function ProjectsPage() {
 // ─── CONTACT PAGE ─────────────────────────────────────────────────────────────
 function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "New Project Inquiry", message: "" });
-  const [sent, setSent] = useState(false);
+  const [status, setStatus] = useState("idle"); // "idle" | "submitting" | "sent"
   const { isMobile } = useViewport();
+
+  const handleSubmit = async () => {
+    if (!form.name || !form.email || !form.message) {
+      alert("Please fill in your name, email, and message.");
+      return;
+    }
+    
+    setStatus("submitting");
+    
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          // Make sure to replace this with your actual Web3Forms access key, or put it in your .env file
+          access_key: import.meta.env.VITE_WEB3FORMS_KEY || "YOUR_WEB3FORMS_ACCESS_KEY",
+          ...form
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setStatus("sent");
+        setForm({ name: "", email: "", subject: "New Project Inquiry", message: "" });
+      } else {
+        alert("Something went wrong. Please try again.");
+        setStatus("idle");
+      }
+    } catch (error) {
+      alert("Error submitting the form. Please check your connection.");
+      setStatus("idle");
+    }
+  };
 
   return (
     <section style={{ minHeight: "100vh", padding: isMobile ? "112px 16px 64px" : "120px 24px 80px" }}>
@@ -751,12 +788,12 @@ function ContactPage() {
           {/* Form */}
           <div style={{ background: "rgba(25,37,64,0.6)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 32, padding: isMobile ? 24 : 48, backdropFilter: "blur(12px)", boxShadow: "0 0 30px rgba(186,158,255,0.1)", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", bottom: -80, right: -80, width: 256, height: 256, background: "rgba(83,221,252,0.08)", borderRadius: "50%", filter: "blur(80px)" }} />
-            {sent ? (
+            {status === "sent" ? (
               <div style={{ textAlign: "center", padding: "60px 0" }}>
                 <div style={{ fontSize: 64, marginBottom: 24 }}>🚀</div>
                 <h3 style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", color: "#fff", fontWeight: 800, fontSize: 24, marginBottom: 12 }}>Transmission Sent!</h3>
                 <p style={{ fontFamily: "'Inter',sans-serif", color: "#a3aac4" }}>I'll get back to you soon.</p>
-                <button onClick={() => setSent(false)} style={{ marginTop: 24, padding: "12px 28px", background: "none", border: "1px solid rgba(186,158,255,0.3)", color: "#ba9eff", borderRadius: 9999, fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, cursor: "pointer" }}>Send Another</button>
+                <button onClick={() => setStatus("idle")} style={{ marginTop: 24, padding: "12px 28px", background: "none", border: "1px solid rgba(186,158,255,0.3)", color: "#ba9eff", borderRadius: 9999, fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 700, cursor: "pointer" }}>Send Another</button>
               </div>
             ) : (
               <div style={{ position: "relative", zIndex: 1 }}>
@@ -765,7 +802,8 @@ function ContactPage() {
                     <div key={field}>
                       <label style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#53ddfc", letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>{label}</label>
                       <input type={type} placeholder={ph} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })}
-                        style={{ width: "100%", boxSizing: "border-box", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: isMobile ? "12px 16px" : "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none" }}
+                        disabled={status === "submitting"}
+                        style={{ width: "100%", boxSizing: "border-box", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: isMobile ? "12px 16px" : "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none", opacity: status === "submitting" ? 0.6 : 1 }}
                         onFocus={e => e.target.style.borderColor = "#53ddfc"} onBlur={e => e.target.style.borderColor = "rgba(64,72,93,0.4)"} />
                     </div>
                   ))}
@@ -773,20 +811,23 @@ function ContactPage() {
                 <div style={{ marginBottom: 24 }}>
                   <label style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#53ddfc", letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Subject</label>
                   <select value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}
-                    style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: isMobile ? "12px 16px" : "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none" }}>
+                    disabled={status === "submitting"}
+                    style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: isMobile ? "12px 16px" : "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none", opacity: status === "submitting" ? 0.6 : 1 }}>
                     {["New Project Inquiry", "Collaboration Opportunity", "AI/ML Consultation", "Just saying hello"].map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
                 <div style={{ marginBottom: 32 }}>
                   <label style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "#53ddfc", letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Message</label>
                   <textarea rows={5} placeholder="Tell me about your project or idea..." value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
-                    style={{ width: "100%", boxSizing: "border-box", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: isMobile ? "12px 16px" : "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none", resize: "vertical" }}
+                    disabled={status === "submitting"}
+                    style={{ width: "100%", boxSizing: "border-box", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(64,72,93,0.4)", borderRadius: 12, padding: isMobile ? "12px 16px" : "14px 20px", color: "#dee5ff", fontFamily: "'Inter',sans-serif", fontSize: 14, outline: "none", resize: "vertical", opacity: status === "submitting" ? 0.6 : 1 }}
                     onFocus={e => e.target.style.borderColor = "#53ddfc"} onBlur={e => e.target.style.borderColor = "rgba(64,72,93,0.4)"} />
                 </div>
-                <button onClick={() => setSent(true)}
-                  style={{ width: "100%", padding: "18px", background: "linear-gradient(90deg,#ba9eff,#8455ef)", border: "none", borderRadius: 9999, color: "#000", fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 900, fontSize: 15, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", boxShadow: "0 0 30px rgba(186,158,255,0.4)", transition: "transform 0.2s" }}
-                  onMouseOver={e => e.currentTarget.style.transform = "scale(1.02)"} onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}>
-                  Initiate Transmission
+                <button onClick={handleSubmit}
+                  disabled={status === "submitting"}
+                  style={{ width: "100%", padding: "18px", background: "linear-gradient(90deg,#ba9eff,#8455ef)", border: "none", borderRadius: 9999, color: "#000", fontFamily: "'Plus Jakarta Sans',sans-serif", fontWeight: 900, fontSize: 15, letterSpacing: "0.1em", textTransform: "uppercase", cursor: status === "submitting" ? "not-allowed" : "pointer", boxShadow: "0 0 30px rgba(186,158,255,0.4)", transition: "transform 0.2s", opacity: status === "submitting" ? 0.7 : 1 }}
+                  onMouseOver={e => { if (status !== "submitting") e.currentTarget.style.transform = "scale(1.02)" }} onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}>
+                  {status === "submitting" ? "Initiating..." : "Initiate Transmission"}
                 </button>
               </div>
             )}
